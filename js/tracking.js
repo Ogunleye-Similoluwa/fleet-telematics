@@ -9,7 +9,7 @@ const trails = {};
 
 if (window.L) {
   map = L.map("map").setView(CAMPUS_CENTER, 16);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { attribution: "© OpenStreetMap contributors © CARTO", subdomains: "abcd", maxZoom: 19 }).addTo(map);
 } else {
   document.getElementById("map").innerHTML = '<div class="empty">The map needs an internet connection. Vehicle data below still updates.</div>';
 }

@@ -47,7 +47,7 @@ function renderRecent() {
 let map, markers = {};
 if (window.L) {
   map = L.map("miniMap").setView(CAMPUS_CENTER, 15);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { attribution: "© OpenStreetMap contributors © CARTO", subdomains: "abcd", maxZoom: 19 }).addTo(map);
 } else {
   document.getElementById("miniMap").innerHTML = '<div class="empty">Map needs an internet connection.</div>';
 }

@@ -32,7 +32,7 @@ Demo login: `admin` / `admin123`
 
 - **Data** (`js/data.js`): tables match the ER design — users, vehicles, drivers, trips, locations, maintenance — saved in the browser's `localStorage`.
 - **GPS simulation**: there is no tracking hardware, so every 5 seconds each *Active* vehicle gets a new location record (vehicle_id, latitude, longitude, speed, timestamp) along an approximate route around UI campus. This stands in for the GPS/GSM device described in Chapter 4.
-- **Map**: [Leaflet](https://leafletjs.com) with OpenStreetMap tiles (needs internet; everything else works offline).
+- **Map**: [Leaflet](https://leafletjs.com) with CARTO tiles (OpenStreetMap data) (needs internet; everything else works offline).
 
 ## Limitations (be honest about these in Chapter 5)
 
