@@ -104,11 +104,13 @@ function simulateTick(data) {
     const [lat, lng] = CAMPUS_ROUTE[step];
     const jitter = () => (Math.random() - 0.5) * 0.0004;
     const speed = Math.round(15 + Math.random() * 35); // 15–50 km/h
+    const reading = { lat: +(lat + jitter()).toFixed(6), lng: +(lng + jitter()).toFixed(6) };
+    if (!isValidCoordinate(reading.lat, reading.lng)) return; // reject bad readings
     data.locations.push({
       location_id: DB.nextId(data.locations, "location_id"),
       vehicle_id: v.vehicle_id,
-      latitude: +(lat + jitter()).toFixed(6),
-      longitude: +(lng + jitter()).toFixed(6),
+      latitude: reading.lat,
+      longitude: reading.lng,
       speed_kmh: speed,
       route_index: step,
       recorded_at: now,
