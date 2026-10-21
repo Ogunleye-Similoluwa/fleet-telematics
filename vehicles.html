@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetTrack | Vehicles</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="vehicles">
+  <div class="shell"><aside class="sidebar" id="sidebar"></aside><main class="main"></main></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/crud.js"></script>
+  <script>
+    const STATUSES = ["Active", "Idle", "Maintenance"];
+    const TYPES = ["Bus", "Van", "Car", "Utility", "Truck", "Ambulance"];
+
+    setupRegister("Vehicles", "Vehicles", {
+      table: "vehicles", key: "vehicle_id", noun: "vehicle",
+      columns: [
+        { label: "Plate number", render: (v) => `<b>${esc(v.plate_number)}</b>` },
+        { label: "Model", render: (v) => esc(v.model) },
+        { label: "Type", render: (v) => esc(v.type) },
+        { label: "Driver", render: (v, d) => esc(driverLabel(d, (d.drivers.find((x) => x.vehicle_id === v.vehicle_id) || {}).driver_id)) },
+        { label: "Odometer", render: (v) => `${Number(v.odometer).toLocaleString()} km` },
+        { label: "Status", render: (v) => statusBadge(v.status) },
+      ],
+      searchText: (v) => `${v.plate_number} ${v.model} ${v.type} ${v.status}`,
+      formHtml: (v) => `
+        <label>Plate number <input name="plate_number" required value="${esc(v.plate_number)}" placeholder="UI-BUS-004"></label>
+        <label>Model <input name="model" required value="${esc(v.model)}"></label>
+        <div class="form-row">
+          <label>Type <select name="type">${TYPES.map((t) => `<option ${t === v.type ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+          <label>Status <select name="status">${STATUSES.map((s) => `<option ${s === v.status ? "selected" : ""}>${s}</option>`).join("")}</select></label>
+        </div>
+        <label>Odometer (km) <input name="odometer" type="number" min="0" required value="${esc(v.odometer ?? 0)}"></label>`,
+      parse: (f, data, editingId) => {
+        const plate = f.plate_number.trim().toUpperCase();
+        if (!plate || !f.model.trim()) return "Plate number and model are required.";
+        if (data.vehicles.some((v) => v.plate_number === plate && v.vehicle_id !== editingId)) return "A vehicle with this plate number already exists.";
+        if (Number(f.odometer) < 0) return "Odometer cannot be negative.";
+        return { plate_number: plate, model: f.model.trim(), type: f.type, status: f.status, odometer: Number(f.odometer) };
+      },
+      canDelete: (v, data) =>
+        data.trips.some((t) => t.vehicle_id === v.vehicle_id) || data.maintenance.some((m) => m.vehicle_id === v.vehicle_id)
+          ? "This vehicle has trip or maintenance records. Set its status instead of deleting it."
+          : true,
+    });
+  </script>
+</body>
+</html>

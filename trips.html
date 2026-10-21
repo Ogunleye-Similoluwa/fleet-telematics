@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetTrack | Trip Records</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="trips">
+  <div class="shell"><aside class="sidebar" id="sidebar"></aside><main class="main"></main></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/crud.js"></script>
+  <script>
+    function duration(t) {
+      const mins = Math.round((new Date(t.end_time) - new Date(t.start_time)) / 60000);
+      return mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins} min`;
+    }
+
+    setupRegister("Trip records", "Trip records", {
+      table: "trips", key: "trip_id", noun: "trip",
+      columns: [
+        { label: "Date", render: (t) => fmtDateTime(t.start_time) },
+        { label: "Vehicle", render: (t, d) => `<b>${esc(vehicleLabel(d, t.vehicle_id))}</b>` },
+        { label: "Driver", render: (t, d) => esc(driverLabel(d, t.driver_id)) },
+        { label: "From → To", render: (t) => `${esc(t.start_location)} → ${esc(t.end_location)}` },
+        { label: "Duration", render: duration },
+        { label: "Distance", render: (t) => `${t.distance_km} km` },
+      ],
+      searchText: (t, d) => `${vehicleLabel(d, t.vehicle_id)} ${driverLabel(d, t.driver_id)} ${t.start_location} ${t.end_location} ${t.start_time}`,
+      formHtml: (t, data) => `
+        <div class="form-row">
+          <label>Vehicle <select name="vehicle_id" required>${vehicleOptions(data, t.vehicle_id)}</select></label>
+          <label>Driver <select name="driver_id" required>${driverOptions(data, t.driver_id)}</select></label>
+        </div>
+        <div class="form-row">
+          <label>Start location <input name="start_location" required value="${esc(t.start_location)}"></label>
+          <label>End location <input name="end_location" required value="${esc(t.end_location)}"></label>
+        </div>
+        <div class="form-row">
+          <label>Start time <input name="start_time" type="datetime-local" required value="${esc(t.start_time)}"></label>
+          <label>End time <input name="end_time" type="datetime-local" required value="${esc(t.end_time)}"></label>
+        </div>
+        <label>Distance (km) <input name="distance_km" type="number" step="0.1" min="0.1" required value="${esc(t.distance_km)}"></label>`,
+      parse: (f) => {
+        if (new Date(f.end_time) <= new Date(f.start_time)) return "End time must be after start time.";
+        if (!(Number(f.distance_km) > 0)) return "Distance must be greater than zero.";
+        return {
+          vehicle_id: Number(f.vehicle_id), driver_id: Number(f.driver_id),
+          start_location: f.start_location.trim(), end_location: f.end_location.trim(),
+          start_time: f.start_time, end_time: f.end_time, distance_km: Number(f.distance_km),
+        };
+      },
+    });
+  </script>
+</body>
+</html>

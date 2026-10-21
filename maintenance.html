@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetTrack | Maintenance</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="maintenance">
+  <div class="shell"><aside class="sidebar" id="sidebar"></aside><main class="main"></main></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/crud.js"></script>
+  <script>
+    setupRegister("Maintenance", "Maintenance", {
+      table: "maintenance", key: "maintenance_id", noun: "service record",
+      columns: [
+        { label: "Vehicle", render: (m, d) => `<b>${esc(vehicleLabel(d, m.vehicle_id))}</b>` },
+        { label: "Description", render: (m) => esc(m.description) },
+        { label: "Service date", render: (m) => fmtDate(m.service_date) },
+        { label: "Next due", render: (m) => fmtDate(m.next_due_date) },
+        { label: "Cost", render: (m) => naira(m.cost) },
+        { label: "Status", render: (m) => statusBadge(maintenanceStatus(m)) },
+      ],
+      searchText: (m, d) => `${vehicleLabel(d, m.vehicle_id)} ${m.description} ${maintenanceStatus(m)}`,
+      formHtml: (m, data) => `
+        <label>Vehicle <select name="vehicle_id" required>${vehicleOptions(data, m.vehicle_id)}</select></label>
+        <label>Description <input name="description" required value="${esc(m.description)}" placeholder="Oil change, tyre replacement…"></label>
+        <div class="form-row">
+          <label>Service date <input name="service_date" type="date" required value="${esc(m.service_date)}"></label>
+          <label>Next due date <input name="next_due_date" type="date" required value="${esc(m.next_due_date)}"></label>
+        </div>
+        <label>Cost (₦) <input name="cost" type="number" min="0" required value="${esc(m.cost ?? 0)}"></label>`,
+      parse: (f) => {
+        if (!f.description.trim()) return "Description is required.";
+        if (f.next_due_date <= f.service_date) return "Next due date must be after the service date.";
+        if (Number(f.cost) < 0) return "Cost cannot be negative.";
+        return { vehicle_id: Number(f.vehicle_id), description: f.description.trim(), service_date: f.service_date, next_due_date: f.next_due_date, cost: Number(f.cost) };
+      },
+    });
+  </script>
+</body>
+</html>

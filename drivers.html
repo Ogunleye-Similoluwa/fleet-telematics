@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetTrack | Drivers</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="drivers">
+  <div class="shell"><aside class="sidebar" id="sidebar"></aside><main class="main"></main></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/crud.js"></script>
+  <script>
+    setupRegister("Drivers", "Drivers", {
+      table: "drivers", key: "driver_id", noun: "driver",
+      columns: [
+        { label: "Name", render: (d) => `<b>${esc(d.name)}</b>` },
+        { label: "Phone", render: (d) => esc(d.phone) },
+        { label: "Licence no.", render: (d) => esc(d.licence_number) },
+        { label: "Assigned vehicle", render: (d, data) => d.vehicle_id ? esc(vehicleLabel(data, d.vehicle_id)) : "—" },
+        { label: "Status", render: (d) => statusBadge(d.vehicle_id ? "Assigned" : "Off duty") },
+      ],
+      searchText: (d, data) => `${d.name} ${d.phone} ${d.licence_number} ${vehicleLabel(data, d.vehicle_id)}`,
+      formHtml: (d, data) => `
+        <label>Full name <input name="name" required value="${esc(d.name)}"></label>
+        <div class="form-row">
+          <label>Phone <input name="phone" required value="${esc(d.phone)}" placeholder="080..."></label>
+          <label>Licence number <input name="licence_number" required value="${esc(d.licence_number)}"></label>
+        </div>
+        <label>Assigned vehicle <select name="vehicle_id"><option value="">None</option>${vehicleOptions(data, d.vehicle_id)}</select></label>`,
+      parse: (f, data, editingId) => {
+        if (!f.name.trim() || !f.licence_number.trim()) return "Name and licence number are required.";
+        if (!/^0[789][01]\d{8}$/.test(f.phone.trim())) return "Enter a valid 11-digit Nigerian phone number.";
+        const licence = f.licence_number.trim().toUpperCase();
+        if (data.drivers.some((d) => d.licence_number === licence && d.driver_id !== editingId)) return "Another driver has this licence number.";
+        const vehicleId = f.vehicle_id ? Number(f.vehicle_id) : null;
+        if (vehicleId && data.drivers.some((d) => d.vehicle_id === vehicleId && d.driver_id !== editingId)) return "That vehicle is already assigned to another driver.";
+        return { name: f.name.trim(), phone: f.phone.trim(), licence_number: licence, vehicle_id: vehicleId };
+      },
+      canDelete: (d, data) => data.trips.some((t) => t.driver_id === d.driver_id)
+        ? "This driver has trip records and cannot be deleted." : true,
+    });
+  </script>
+</body>
+</html>

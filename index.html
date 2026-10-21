@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetTrack | Sign in</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="login-page">
+    <form class="login-card" id="loginForm">
+      <div class="brand"><div class="brand-logo" style="color:#fff">▣</div><div><b>FleetTrack</b><small>University of Ibadan</small></div></div>
+      <h2>Sign in</h2>
+      <p class="muted">Fleet Telematics System for Vehicle Tracking and Management</p>
+      <label>Username <input name="username" required autocomplete="username"></label>
+      <label>Password <input name="password" type="password" required autocomplete="current-password"></label>
+      <div class="error" id="loginError"></div>
+      <button class="btn" style="width:100%">Sign in</button>
+      <p class="muted" style="margin-top:14px">Demo login: <b>admin</b> / <b>admin123</b></p>
+    </form>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    if (currentUser()) location.href = "dashboard.html";
+
+    document.getElementById("loginForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const { username, password } = formData(e.target);
+      if (login(username.trim(), password)) {
+        location.href = "dashboard.html";
+      } else {
+        document.getElementById("loginError").textContent = "Invalid username or password.";
+        e.target.password.value = "";
+      }
+    });
+  </script>
+</body>
+</html>

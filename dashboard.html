@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetTrack | Dashboard</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="dashboard">
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main">
+      <button class="btn ghost menu-btn">☰ Menu</button>
+      <div class="crumb">Fleet management / Dashboard</div>
+      <h1>Fleet overview</h1>
+      <h2 id="greet"></h2>
+      <p class="muted">Here's what's happening with your fleet today.</p>
+
+      <div class="grid stats" id="stats"></div>
+
+      <div class="grid two-col">
+        <div class="card">
+          <h2>Fleet activity</h2>
+          <p class="muted">Trips completed in the last 7 days</p>
+          <div class="bars" id="tripChart"></div>
+        </div>
+        <div class="card">
+          <h2>Maintenance alerts</h2>
+          <p class="muted">Overdue or due within 7 days</p>
+          <div id="alerts"></div>
+        </div>
+      </div>
+
+      <div class="grid two-col" style="margin-top:16px">
+        <div class="card">
+          <h2>Live positions</h2>
+          <p class="muted">Simulated GPS updates every 5 seconds</p>
+          <div id="miniMap"></div>
+        </div>
+        <div class="card">
+          <h2>Recently tracked vehicles</h2>
+          <div id="recent"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

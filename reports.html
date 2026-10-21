@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FleetTrack | Reports</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="reports">
+  <div class="shell">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main">
+      <button class="btn ghost menu-btn">☰ Menu</button>
+      <div class="crumb">Fleet management / Reports</div>
+      <h1>Reports</h1>
+      <div class="toolbar">
+        <label style="margin:0">From <input type="date" id="from"></label>
+        <label style="margin:0">To <input type="date" id="to"></label>
+        <span class="spacer"></span>
+        <button class="btn ghost" id="csvBtn">Export CSV</button>
+        <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      </div>
+
+      <div class="grid stats" id="summary"></div>
+
+      <div class="card">
+        <h2>Vehicle utilisation</h2>
+        <p class="muted">Trips, distance and maintenance cost per vehicle in the selected period</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Vehicle</th><th>Model</th><th>Status</th><th>Trips</th><th>Distance (km)</th><th>Maintenance cost</th></tr></thead>
+          <tbody id="reportRows"></tbody>
+        </table></div>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <h2>Data management</h2>
+        <p class="muted">All data is stored in this browser. Resetting restores the sample data.</p>
+        <button class="btn danger" id="resetBtn">Reset sample data</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const fromEl = document.getElementById("from");
+    const toEl = document.getElementById("to");
+    toEl.value = new Date().toISOString().slice(0, 10);
+    fromEl.value = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+
+    function buildReport() {
+      const data = DB.load();
+      const inRange = (d) => d.slice(0, 10) >= fromEl.value && d.slice(0, 10) <= toEl.value;
+      const trips = data.trips.filter((t) => inRange(t.start_time));
+      const services = data.maintenance.filter((m) => inRange(m.service_date));
+      return data.vehicles.map((v) => {
+        const vt = trips.filter((t) => t.vehicle_id === v.vehicle_id);
+        return {
+          plate: v.plate_number, model: v.model, status: v.status, trips: vt.length,
+          distance: +vt.reduce((s, t) => s + Number(t.distance_km), 0).toFixed(1),
+          cost: services.filter((m) => m.vehicle_id === v.vehicle_id).reduce((s, m) => s + Number(m.cost), 0),
+        };
+      });
+    }
+
+    function render() {
+      const rows = buildReport();
+      const total = (k) => rows.reduce((s, r) => s + r[k], 0);
+      document.getElementById("summary").innerHTML = [
+        ["Trips", total("trips")], ["Distance", total("distance").toFixed(1) + " km"],
+        ["Maintenance cost", naira(total("cost"))], ["Vehicles used", rows.filter((r) => r.trips > 0).length],
+      ].map(([l, v]) => `<div class="card stat"><div class="label">${l}</div><div class="value">${v}</div></div>`).join("");
+      document.getElementById("reportRows").innerHTML = rows.map((r) =>
+        `<tr><td><b>${esc(r.plate)}</b></td><td>${esc(r.model)}</td><td>${statusBadge(r.status)}</td><td>${r.trips}</td><td>${r.distance}</td><td>${naira(r.cost)}</td></tr>`).join("");
+    }
+
+    document.getElementById("csvBtn").onclick = () => {
+      const rows = buildReport();
+      const lines = [["Vehicle", "Model", "Status", "Trips", "Distance_km", "Maintenance_cost_NGN"]]
+        .concat(rows.map((r) => [r.plate, r.model, r.status, r.trips, r.distance, r.cost]))
+        .map((line) => line.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","));
+      const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `fleet-report-${fromEl.value}-to-${toEl.value}.csv`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+
+    document.getElementById("resetBtn").onclick = () => {
+      if (confirm("Delete all changes and restore the sample data?")) { DB.reset(); render(); }
+    };
+
+    fromEl.onchange = toEl.onchange = render;
+    render();
+  </script>
+</body>
+</html>
